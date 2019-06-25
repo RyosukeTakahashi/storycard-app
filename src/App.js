@@ -1,20 +1,20 @@
 /** @jsx jsx */
-import React, { useCallback, useState } from "react";
-import { jsx, css } from "@emotion/core";
-import { CSSTransition, Transition } from "react-transition-group";
+import React, {useCallback, useState} from 'react';
+import {jsx, css} from '@emotion/core';
+import {CSSTransition, Transition} from 'react-transition-group';
 
-import Button from "@material-ui/core/Button";
+import Button from '@material-ui/core/Button';
 
 const phrases = [
-  "偶然にも",
-  "そもそも",
-  "そういうわけで",
-  "もし",
-  "そして",
-  "いつのまにか",
-  "残念ながら",
-  "いつか",
-  "いいかえると"
+  '偶然にも',
+  'そもそも',
+  'そういうわけで',
+  'もし',
+  'そして',
+  'いつのまにか',
+  '残念ながら',
+  'いつか',
+  'いいかえると',
 ];
 
 //todo カード画像？要素？
@@ -48,7 +48,7 @@ function Header() {
             css={css`
               transition: 0.5s;
               transform: translateX(
-                ${state === "entering" || state === "entered" ? 400 : 0}px
+                ${state === 'entering' || state === 'entered' ? 400 : 0}px
               );
               margin-left: 5vw;
             `}
@@ -71,12 +71,27 @@ function Header() {
   );
 }
 
-const PhraseSection = ({ phrase, animating }) => {
+const PhraseSection = ({phrase, animating}) => {
   return (
-    <Transition timeout={300} in={animating} unmountOnExit>
-      {state => (
-        <div
-          css={css`
+    <Transition timeout={500} in={animating} >
+      {state => {
+
+        const position = () => {
+          switch (state) {
+            case 'entering':
+              return '-40vh';
+            case 'entered':
+              return '-40vh';
+            case 'exiting':
+              return '0';
+            case 'exited':
+              return '0';
+          }
+        };
+
+        return (
+          <div
+            css={css`
           position: absolute;
           top: 0;
           bottom: 0;
@@ -93,34 +108,39 @@ const PhraseSection = ({ phrase, animating }) => {
           z-index: 0;
           
           transition: 300ms ease-out;
-          transform: translateX(${() => {
-            switch (state) {
-              case "entering":
-                return "-40vw";
-              case "entered":
-                return "-40vw";
-              case "existing":
-                return "-30vw";
-              case "exited":
-                return "-20vw";
-            }
-          }};
-          )
+          transform: translateX(${position()});
                       
         `}
-        >
-          <p>{phrase}</p>
-        </div>
-      )}
+          >
+            <p>{phrase}</p>
+          </div>
+        );
+      }
+      }
     </Transition>
     //transform: translateX(${
     //   state === "entering" || state === "entered" ? "-40vw" : 0
     // });
 
+    // transform: translateX(${(state) => {
+    //   console.log(state);
+    //   switch (state.status) {
+    //     case 'entering':
+    //       return '-40vw';
+    //     case 'entered':
+    //       return '-40vw';
+    //     case 'exiting':
+    //       return '-30vw';
+    //     case 'exited':
+    //       return '-20vw';
+    //   }
+    // }};
+    // );
+
   );
 };
 
-const EmotionButton = ({ onButtonClick }) => {
+const EmotionButton = ({onButtonClick}) => {
   return (
     <div
       css={css`
@@ -157,26 +177,26 @@ function App() {
 
   const startAnimate = useCallback(() => {
     setIsAnimating(true);
-    // setTimeout(() => {
-    // setIsAnimating(false);
-    // }, 1000);
+    setTimeout(() => {
+      setIsAnimating(false);
+    }, 1000);
   }, []);
 
   function handleClick() {
     startAnimate();
 
-    const newPhrase = getRandomPhrase();
-    setPhrase(newPhrase);
-    addToPhraseLog(phraseLog.concat([newPhrase]));
+    // const newPhrase = getRandomPhrase();
+    // setPhrase(newPhrase);
+    // addToPhraseLog(phraseLog.concat([newPhrase]));
 
     //
   }
 
   return (
     <div className="App">
-      <Header />
-      <PhraseSection phrase={phrase} animating={animating} />
-      <EmotionButton onButtonClick={handleClick} />
+      <Header/>
+      <PhraseSection phrase={phrase} animating={animating}/>
+      <EmotionButton onButtonClick={handleClick}/>
       {/*<PhraseLog usedPhrases={phraseLog}/>*/}
     </div>
   );
