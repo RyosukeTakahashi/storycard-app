@@ -1,7 +1,7 @@
 /** @jsx jsx */
-import React, { useState } from "react";
-
-import { jsx, css, keyframes } from "@emotion/core";
+import React, { useCallback, useState } from "react";
+import { jsx, css } from "@emotion/core";
+import { CSSTransition, Transition } from "react-transition-group";
 
 import Button from "@material-ui/core/Button";
 
@@ -25,79 +25,102 @@ const phrases = [
 //todo 語群ををRailsから取れる
 
 function Header() {
+  const [animating, setIsAnimating] = useState(false);
+
+  const startAnimate = useCallback(() => {
+    setIsAnimating(true);
+    setTimeout(() => {
+      setIsAnimating(false);
+    }, 1000);
+  }, []);
+
   return (
-    <header>
-      <h1
-        css={css`
-          margin-left: 5vw;
-        `}
-      >
-        StoryCard
-      </h1>
-    </header>
+    <div
+      onClick={startAnimate}
+      css={css`
+        position: relative;
+        z-index: 100;
+      `}
+    >
+      <Transition timeout={500} in={animating}>
+        {state => (
+          <header
+            css={css`
+              transition: 0.5s;
+              transform: translateX(
+                ${state === "entering" || state === "entered" ? 400 : 0}px
+              );
+              margin-left: 5vw;
+            `}
+          >
+            <h1>Story card</h1>
+          </header>
+        )}
+      </Transition>
+
+      {/*<header>*/}
+      {/*  <h1*/}
+      {/*    css={css`*/}
+      {/*      margin-left: 5vw;*/}
+      {/*    `}*/}
+      {/*  >*/}
+      {/*    StoryCard*/}
+      {/*  </h1>*/}
+      {/*</header>*/}
+    </div>
   );
 }
 
-// const bounce = keyframes`
-//   from, 20%, 53%, 80%, to {
-//     transform: translate3d(0,0,0);
-//   }
-//
-//   40%, 43% {
-//     transform: translate3d(-30px, -30px, 0);
-//   }
-//
-//   70% {
-//     transform: translate3d(-15px, -15px, 0);
-//   }
-//
-//   90% {
-//     transform: translate3d(-4px,-4px,0);
-//   }
-// `;
-
-const slideLeft = keyframes`
-  0% {
-    transform: translate3d(0, 0, 0);
-  }
-
-  100% {
-    transform: translate3d(-60vh, 0, 0);
-  }
-`;
-
-
-const PhraseSection = ({ phrase }) => {
+const PhraseSection = ({ phrase, animating }) => {
   return (
-    <div
-      css={css`
-        position: absolute;
-        top: 0;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        margin: auto;
-
-        height: 100vh;
-        display: flex;
-        justify-content: center;
-        flex-direction: column;
-        text-align: center;
-        font-size: 3em;
-      `}
-    >
-      <p
-        css={css`
-          animation: ${slideLeft} 1s ease;
+    <Transition timeout={300} in={animating} unmountOnExit>
+      {state => (
+        <div
+          css={css`
+          position: absolute;
+          top: 0;
+          bottom: 0;
+          left: 0;
+          right: 0;
+          margin: auto;
+          
+          height: 100vh;
+          display: flex;
+          justify-content: center;
+          flex-direction: column;
+          text-align: center;
+          font-size: 3em;
+          z-index: 0;
+          
+          transition: 300ms ease-out;
+          transform: translateX(${() => {
+            switch (state) {
+              case "entering":
+                return "-40vw";
+              case "entered":
+                return "-40vw";
+              case "existing":
+                return "-30vw";
+              case "exited":
+                return "-20vw";
+            }
+          }};
+          )
+                      
         `}
-      >
-        {phrase}
-      </p>
-    </div>
+        >
+          <p>{phrase}</p>
+        </div>
+      )}
+    </Transition>
+    //transform: translateX(${
+    //   state === "entering" || state === "entered" ? "-40vw" : 0
+    // });
+
   );
 };
 
-const EmotionButton = props => {
+const EmotionButton = ({ onButtonClick }) => {
   return (
     <div
       css={css`
@@ -110,7 +133,7 @@ const EmotionButton = props => {
         justify-content: center;
       `}
     >
-      <Button variant="contained" color="primary" onClick={props.onButtonClick}>
+      <Button variant="contained" color="primary" onClick={onButtonClick}>
         次のカード
       </Button>
     </div>
@@ -130,16 +153,29 @@ function App() {
   const [phrase, setPhrase] = useState(initialPhrase);
   const [phraseLog, addToPhraseLog] = useState([initialPhrase]);
 
+  const [animating, setIsAnimating] = useState(false);
+
+  const startAnimate = useCallback(() => {
+    setIsAnimating(true);
+    // setTimeout(() => {
+    // setIsAnimating(false);
+    // }, 1000);
+  }, []);
+
   function handleClick() {
+    startAnimate();
+
     const newPhrase = getRandomPhrase();
     setPhrase(newPhrase);
     addToPhraseLog(phraseLog.concat([newPhrase]));
+
+    //
   }
 
   return (
     <div className="App">
       <Header />
-      <PhraseSection phrase={phrase} />
+      <PhraseSection phrase={phrase} animating={animating} />
       <EmotionButton onButtonClick={handleClick} />
       {/*<PhraseLog usedPhrases={phraseLog}/>*/}
     </div>
