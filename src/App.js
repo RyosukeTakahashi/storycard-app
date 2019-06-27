@@ -7,11 +7,6 @@ import Button from "@material-ui/core/Button";
 import { logicalPhrases, storyPhrases, shuffle } from "./words";
 import "./App.css";
 
-const modes = {
-  logical: shuffle(logicalPhrases),
-  story: shuffle(storyPhrases)
-};
-
 const to = i => ({
   x: 0,
   y: i * -8,
@@ -32,6 +27,12 @@ const trans = (r, s) =>
 
 const defaultTime = 8;
 
+const modes = {
+  logical: shuffle(logicalPhrases),
+  story: shuffle(storyPhrases)
+};
+
+
 export default function App() {
   const [isInMenu] = useState(true);
   const [mode, setMode] = useState("logical");
@@ -44,16 +45,22 @@ export default function App() {
   }));
   const [timeLeft, setTimeLeft] = useState(8);
 
-  const [{ data, loading, error }, refetch] = useAxios(
+  const [{ data, loading, error }] = useAxios(
     "http://localhost:3001/logical_phrases/"
   );
+
+  // const [{ data, loading, error }] = useAxios(
+  //   "http://localhost:3001/story_phrases/"
+  // );
+
 
   function handleClick(id) {
     setTimeout(() => {
       gone.clear();
       set(i => from(i));
       setMode(id);
-      setPhrases(shuffle(modes[mode]).slice(0, 10));
+      // setPhrases(shuffle(modes[mode]).slice(0, 10));
+      setPhrases(shuffle(data.map(e => e.phrase)).slice(0, 10));
       setGoneAdded(true);
     }, 600);
 
@@ -116,13 +123,12 @@ export default function App() {
 
   if (loading) return <p>Loading...</p>;
   if (error) return <p>Error!</p>;
-  if (data)
-    return <pre>{data.map(e => e.phrase)}</pre>;
 
   return (
     <div>
       <Deck
-        phrases={modes[mode]}
+        // phrases={modes[mode]}
+        phrases={phrases}
         gone={gone}
         springProps={springProps}
         set={set}
