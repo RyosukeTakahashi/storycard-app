@@ -45,7 +45,8 @@ export default function App() {
   }));
   const [timeLeft, setTimeLeft] = useState(8);
 
-  const [{ data, loading, error }] = useAxios(
+  // const [{ data, loading, error }, refetch] = useAxios(
+  const [response] = useAxios(
     "http://localhost:3001/logical_phrases/"
   );
 
@@ -56,11 +57,12 @@ export default function App() {
 
   function handleClick(id) {
     setTimeout(() => {
+      console.log(response);
       gone.clear();
       set(i => from(i));
       setMode(id);
       // setPhrases(shuffle(modes[mode]).slice(0, 10));
-      setPhrases(shuffle(data.map(e => e.phrase)).slice(0, 10));
+      setPhrases(shuffle(response.data.map(e => e.phrase)).slice(0, 10));
       setGoneAdded(true);
     }, 600);
 
@@ -121,8 +123,8 @@ export default function App() {
     }
   );
 
-  if (loading) return <p>Loading...</p>;
-  if (error) return <p>Error!</p>;
+  // if (loading) return <p>Loading...</p>;
+  // if (error) return <p>Error!</p>;
 
   return (
     <div>
