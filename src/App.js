@@ -31,14 +31,15 @@ const cardCount = 10;
 export default function App() {
   const [
     { data: logicalData, loading: logicalDataLoading }
-  ] = useAxios({ url: `http://localhost:3001/logical_phrases/` });
+  // ] = useAxios({ url: `http://localhost:3001/logical_phrases/` });
+  ] = useAxios({ url: `https://randomuser.me/api/?results=30` });
 
   const [
     { data: storyData, loading: storyDataLoading }
-  ] = useAxios({ url: `http://localhost:3001/story_phrases/` });
+    // ] = useAxios({ url: `http://localhost:3001/story_phrases/` });
+  ] = useAxios({ url: `https://randomuser.me/api/?results=30` });
 
   const [isInMenu] = useState(true);
-  const [mode, setMode] = useState("logical");
   const [gone] = useState(() => new Set());
   const [springProps, set] = useSprings(cardCount, i => ({
     ...to(i),
@@ -99,30 +100,28 @@ export default function App() {
     }
   );
 
-  const [modes, setModes] = useState({
-    logical: Array(10).fill("お題を選び モードを選択してください"),
-    story: Array(10).fill("お題を選び モードを選択してください")
-  });
-
-  // const [phrases, setPhrases] = useState([]);
+  const [phrases, setPhrases] = useState([]);
 
   useEffect(() => {
     if(!logicalDataLoading && !storyDataLoading) {
-      setModes({
-        logical: logicalData,
-        story: storyData
-      })
+      console.log(logicalData.results);
+      setPhrases(shuffle(logicalData.results.map(e=>e.email)))
     }
-    // setPhrases(shuffle(modes[mode].map(e=>e.phrase)))
 
   }, [storyDataLoading, logicalDataLoading]);
 
   function handleClick(id) {
     setTimeout(() => {
       gone.clear();
-      setMode(id);
+      if (id==="logical"){
+        setPhrases((shuffle(logicalData.results.map(e=>e.email))))
+      } else if (id==="story"){
+        setPhrases((shuffle(storyData.results.map(e=>e.email))))
+      }
       set(i => from(i));
       setGoneAdded(true);
+      console.log(logicalData.results.map(e=>e.email))
+      console.log(storyData.results.map(e=>e.email))
     }, 600);
 
     setTimeout(() => {
@@ -131,14 +130,12 @@ export default function App() {
     }, 1200);
   }
 
-  console.log(logicalDataLoading, storyDataLoading);
-
   return (
     <div>
-      {modes && (
+      {logicalData && (
         <Deck
-          phrases={shuffle(modes[mode]).map(e=>e.phrase)}
-          // phrases={phrases}
+          // phrases={shuffle(modes[mode].results).map(e=>e.email)}
+          phrases={phrases}
           gone={gone}
           springProps={springProps}
           set={set}
