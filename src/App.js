@@ -33,12 +33,11 @@ export default function App() {
   const [isInMenu] = useState(true);
   const [mode, setMode] = useState("logical");
   const [gone] = useState(() => new Set());
-  const [goneAdded, setGoneAdded] = useState(false);
   const [springProps, set] = useSprings(cardCount, i => ({
     ...to(i),
     from: from(i)
   }));
-  const [timeLeft, setTimeLeft] = useState(8);
+  const [goneAdded, setGoneAdded] = useState(false);
 
   // const [
   //   { data: logicalData, loading: logicalDataLoading, error: logicalDataError },
@@ -57,15 +56,17 @@ export default function App() {
   // );
 
   const [
-    { data: logicalData, loading: logicalDataLoading, error: logicalDataError }] = useAxios(
-    { url: `http://localhost:3001/logical_phrases/` },
-  );
+    { data: logicalData, loading: logicalDataLoading, error: logicalDataError }
+  ] = useAxios({ url: `http://localhost:3001/logical_phrases/` });
 
   const [
-    { data: storyData, loading: storyDataLoading, error: storyDataError }] = useAxios(
-    { url: `http://localhost:3001/story_phrases/` },
-  );
+    { data: storyData, loading: storyDataLoading, error: storyDataError }
+  ] = useAxios({ url: `http://localhost:3001/story_phrases/` });
 
+
+  useEffect(()=>{
+
+  });
 
   const bind = useGesture(
     ({
@@ -84,6 +85,7 @@ export default function App() {
           setGoneAdded(false);
         }, 1000);
       } // If button/finger's up and trigger velocity is reached, we flag the card ready to fly out
+
       set(i => {
         if (index !== i) return; // We're only interested in changing spring-data for the current spring
         const isGone = gone.has(index);
@@ -105,6 +107,7 @@ export default function App() {
           config: { friction: 50, tension: down ? 1000 : isGone ? 200 : 500 }
         };
       });
+
       if (!down && gone.size === cardCount) {
         setTimeout(() => {
           gone.clear();
@@ -121,17 +124,12 @@ export default function App() {
   const modes = (() => {
     if (!logicalDataLoading && !storyDataLoading) {
       return {
-        logical: shuffle(logicalData),
+        // logical: shuffle(logicalData),
+        logical: logicalData,
         story: shuffle(storyData)
       };
     }
   })();
-
-  if (logicalDataLoading) return <p>Loading...</p>;
-  if (logicalDataError) return <p>Error...</p>;
-
-  if (storyDataLoading) return <p>Loading...</p>;
-  if (storyDataError) return <p>Error...</p>;
 
   function handleClick(id) {
     setTimeout(() => {
@@ -146,6 +144,12 @@ export default function App() {
       setGoneAdded(false);
     }, 1200);
   }
+
+  if (logicalDataLoading) return <p>Loading...</p>;
+  if (logicalDataError) return <p>Error...</p>;
+
+  if (storyDataLoading) return <p>Loading...</p>;
+  if (storyDataError) return <p>Error...</p>;
 
   return (
     <div>
@@ -175,11 +179,7 @@ export default function App() {
           </Button>
         </div>
       )}
-      <Timer
-        timeLeft={timeLeft}
-        goneAdded={goneAdded}
-        setTimeLeft={setTimeLeft}
-      />
+      <Timer goneAdded={goneAdded} />
     </div>
   );
 }
@@ -205,7 +205,9 @@ function Deck({ phrases, springProps, bind }) {
   ));
 }
 
-function Timer({ timeLeft, goneAdded, setTimeLeft }) {
+function Timer({ goneAdded }) {
+  const [timeLeft, setTimeLeft] = useState(8);
+
   useEffect(() => {
     const timerID = setInterval(() => {
       setTimeLeft(timeLeft - 1);
@@ -218,7 +220,7 @@ function Timer({ timeLeft, goneAdded, setTimeLeft }) {
     return function cleanup() {
       clearInterval(timerID);
     };
-  }, [goneAdded, timeLeft, setTimeLeft]);
+  }, [goneAdded, setTimeLeft, timeLeft]);
 
   const timerWidth = timeLeft > 0 ? (timeLeft - 1) * 20 : 0;
   const initialLength = (defaultTime - 1) * 20;
