@@ -17,19 +17,26 @@ const to = i => ({
 const from = () => ({
   x: 0,
   rot: -15 + Math.random() * 20,
-  scale: 1.5,
+  scale: 1,
   y: -1000
 });
-// This is being used down there in the view, it interpolates rotation and scale into a css transform
 const trans = (r, s) =>
   `perspective(1500px) rotateX(30deg) rotateY(${r /
-    10}deg) rotateZ(${r}deg) scale(${s})`;
+  10}deg) rotateZ(${r}deg) scale(${s})`;
 
 const defaultTime = 8;
 
 const cardCount = 10;
 
 export default function App() {
+  const [
+    { data: logicalData, loading: logicalDataLoading }
+  ] = useAxios({ url: `http://localhost:3001/logical_phrases/` });
+
+  const [
+    { data: storyData, loading: storyDataLoading }
+  ] = useAxios({ url: `http://localhost:3001/story_phrases/` });
+
   const [isInMenu] = useState(true);
   const [mode, setMode] = useState("logical");
   const [gone] = useState(() => new Set());
@@ -38,34 +45,6 @@ export default function App() {
     from: from(i)
   }));
   const [goneAdded, setGoneAdded] = useState(false);
-
-  // const [
-  //   { data: logicalData, loading: logicalDataLoading, error: logicalDataError },
-  //   getLogicalData
-  // ] = useAxios(
-  //   { url: `http://localhost:3001/logical_phrases/` },
-  //   { manual: true }
-  // );
-  //
-  // const [
-  //   { data: storyData, loading: storyDataLoading, error: storyDataError },
-  //   getStoryData
-  // ] = useAxios(
-  //   { url: `http://localhost:3001/story_phrases/` },
-  //   { manual: true }
-  // );
-
-  const [
-    { data: logicalData, loading: logicalDataLoading, error: logicalDataError }
-  ] = useAxios({ url: `http://localhost:3001/logical_phrases/` });
-
-  const [
-    { data: storyData, loading: storyDataLoading, error: storyDataError }
-  ] = useAxios({ url: `http://localhost:3001/story_phrases/` });
-
-  // useEffect(()=>{
-  //   getLogicalData()
-  // }, []);
 
   const bind = useGesture(
     ({
@@ -120,25 +99,29 @@ export default function App() {
     }
   );
 
-  const modes = (() => {
-    if (!logicalDataLoading && !storyDataLoading) {
-      return {
-        // logical: shuffle(logicalData),
+  const [modes, setModes] = useState({
+    logical: Array(10).fill("お題を選び モードを選択してください"),
+    story: Array(10).fill("お題を選び モードを選択してください")
+  });
+
+  // const [phrases, setPhrases] = useState([]);
+
+  useEffect(() => {
+    if(!logicalDataLoading && !storyDataLoading) {
+      setModes({
         logical: logicalData,
         story: storyData
-      };
+      })
     }
-  })();
+    // setPhrases(shuffle(modes[mode].map(e=>e.phrase)))
 
-  // const [phrases, setPhrases] = useState(Array(10).fill("お題を選び モードを選択してください"));
-  const [phrases, setPhrases] = useState(Array(10).fill("お題を選び モードを選択してください"));
+  }, [storyDataLoading, logicalDataLoading]);
 
   function handleClick(id) {
     setTimeout(() => {
       gone.clear();
-      set(i => from(i));
       setMode(id);
-      setPhrases(shuffle(modes[mode].map(e => e["phrase"])));
+      set(i => from(i));
       setGoneAdded(true);
     }, 600);
 
@@ -148,22 +131,21 @@ export default function App() {
     }, 1200);
   }
 
-  if (logicalDataLoading) return <p>Loading...</p>;
-  if (logicalDataError) return <p>Error...</p>;
-
-  if (storyDataLoading) return <p>Loading...</p>;
-  if (storyDataError) return <p>Error...</p>;
+  console.log(logicalDataLoading, storyDataLoading);
 
   return (
     <div>
-      <Deck
-        // phrases={modes[mode].map(e => e["phrase"])}
-        phrases={phrases}
-        gone={gone}
-        springProps={springProps}
-        set={set}
-        bind={bind}
-      />
+      {modes && (
+        <Deck
+          phrases={shuffle(modes[mode]).map(e=>e.phrase)}
+          // phrases={phrases}
+          gone={gone}
+          springProps={springProps}
+          set={set}
+          bind={bind}
+        />
+      )}
+
       {isInMenu && (
         <div className="buttons">
           <Button
