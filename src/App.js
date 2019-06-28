@@ -63,10 +63,9 @@ export default function App() {
     { data: storyData, loading: storyDataLoading, error: storyDataError }
   ] = useAxios({ url: `http://localhost:3001/story_phrases/` });
 
-
-  useEffect(()=>{
-
-  });
+  // useEffect(()=>{
+  //   getLogicalData()
+  // }, []);
 
   const bind = useGesture(
     ({
@@ -126,16 +125,20 @@ export default function App() {
       return {
         // logical: shuffle(logicalData),
         logical: logicalData,
-        story: shuffle(storyData)
+        story: storyData
       };
     }
   })();
+
+  // const [phrases, setPhrases] = useState(Array(10).fill("お題を選び モードを選択してください"));
+  const [phrases, setPhrases] = useState(Array(10).fill("お題を選び モードを選択してください"));
 
   function handleClick(id) {
     setTimeout(() => {
       gone.clear();
       set(i => from(i));
       setMode(id);
+      setPhrases(shuffle(modes[mode].map(e => e["phrase"])));
       setGoneAdded(true);
     }, 600);
 
@@ -154,8 +157,8 @@ export default function App() {
   return (
     <div>
       <Deck
-        phrases={modes[mode].map(e => e["phrase"])}
-        // phrases={phrases}
+        // phrases={modes[mode].map(e => e["phrase"])}
+        phrases={phrases}
         gone={gone}
         springProps={springProps}
         set={set}
