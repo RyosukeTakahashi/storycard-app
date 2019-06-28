@@ -4,7 +4,7 @@ import { useGesture } from "react-use-gesture";
 import useAxios from "axios-hooks";
 import Button from "@material-ui/core/Button";
 
-import { logicalPhrases, storyPhrases, shuffle } from "./words";
+import { shuffle } from "./words";
 import "./App.css";
 
 const to = i => ({
@@ -14,7 +14,7 @@ const to = i => ({
   rot: -15 + Math.random() * 30,
   delay: i * 100
 });
-const from = i => ({
+const from = () => ({
   x: 0,
   rot: -15 + Math.random() * 20,
   scale: 1.5,
@@ -27,50 +27,45 @@ const trans = (r, s) =>
 
 const defaultTime = 8;
 
-const modes = {
-  logical: shuffle(logicalPhrases),
-  story: shuffle(storyPhrases)
-};
-
+const cardCount = 10;
 
 export default function App() {
   const [isInMenu] = useState(true);
   const [mode, setMode] = useState("logical");
-  const [phrases, setPhrases] = useState(modes[mode].slice(0, 10));
   const [gone] = useState(() => new Set());
   const [goneAdded, setGoneAdded] = useState(false);
-  const [springProps, set] = useSprings(phrases.length, i => ({
+  const [springProps, set] = useSprings(cardCount, i => ({
     ...to(i),
     from: from(i)
   }));
   const [timeLeft, setTimeLeft] = useState(8);
 
-  // const [{ data, loading, error }, refetch] = useAxios(
-  const [response] = useAxios(
-    "http://localhost:3001/logical_phrases/"
-  );
-
-  // const [{ data, loading, error }] = useAxios(
-  //   "http://localhost:3001/story_phrases/"
+  // const [
+  //   { data: logicalData, loading: logicalDataLoading, error: logicalDataError },
+  //   getLogicalData
+  // ] = useAxios(
+  //   { url: `http://localhost:3001/logical_phrases/` },
+  //   { manual: true }
+  // );
+  //
+  // const [
+  //   { data: storyData, loading: storyDataLoading, error: storyDataError },
+  //   getStoryData
+  // ] = useAxios(
+  //   { url: `http://localhost:3001/story_phrases/` },
+  //   { manual: true }
   // );
 
+  const [
+    { data: logicalData, loading: logicalDataLoading, error: logicalDataError }] = useAxios(
+    { url: `http://localhost:3001/logical_phrases/` },
+  );
 
-  function handleClick(id) {
-    setTimeout(() => {
-      console.log(response);
-      gone.clear();
-      set(i => from(i));
-      setMode(id);
-      // setPhrases(shuffle(modes[mode]).slice(0, 10));
-      setPhrases(shuffle(response.data.map(e => e.phrase)).slice(0, 10));
-      setGoneAdded(true);
-    }, 600);
+  const [
+    { data: storyData, loading: storyDataLoading, error: storyDataError }] = useAxios(
+    { url: `http://localhost:3001/story_phrases/` },
+  );
 
-    setTimeout(() => {
-      set(i => to(i));
-      setGoneAdded(false);
-    }, 1200);
-  }
 
   const bind = useGesture(
     ({
@@ -110,7 +105,7 @@ export default function App() {
           config: { friction: 50, tension: down ? 1000 : isGone ? 200 : 500 }
         };
       });
-      if (!down && gone.size === phrases.length) {
+      if (!down && gone.size === cardCount) {
         setTimeout(() => {
           gone.clear();
           set(i => to(i));
@@ -123,14 +118,40 @@ export default function App() {
     }
   );
 
-  // if (loading) return <p>Loading...</p>;
-  // if (error) return <p>Error!</p>;
+  const modes = (() => {
+    if (!logicalDataLoading && !storyDataLoading) {
+      return {
+        logical: shuffle(logicalData),
+        story: shuffle(storyData)
+      };
+    }
+  })();
+
+  if (logicalDataLoading) return <p>Loading...</p>;
+  if (logicalDataError) return <p>Error...</p>;
+
+  if (storyDataLoading) return <p>Loading...</p>;
+  if (storyDataError) return <p>Error...</p>;
+
+  function handleClick(id) {
+    setTimeout(() => {
+      gone.clear();
+      set(i => from(i));
+      setMode(id);
+      setGoneAdded(true);
+    }, 600);
+
+    setTimeout(() => {
+      set(i => to(i));
+      setGoneAdded(false);
+    }, 1200);
+  }
 
   return (
     <div>
       <Deck
-        // phrases={modes[mode]}
-        phrases={phrases}
+        phrases={modes[mode].map(e => e["phrase"])}
+        // phrases={phrases}
         gone={gone}
         springProps={springProps}
         set={set}
@@ -197,7 +218,7 @@ function Timer({ timeLeft, goneAdded, setTimeLeft }) {
     return function cleanup() {
       clearInterval(timerID);
     };
-  }, [goneAdded, timeLeft]);
+  }, [goneAdded, timeLeft, setTimeLeft]);
 
   const timerWidth = timeLeft > 0 ? (timeLeft - 1) * 20 : 0;
   const initialLength = (defaultTime - 1) * 20;
