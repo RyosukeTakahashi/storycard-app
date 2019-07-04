@@ -109,7 +109,7 @@ export default function App() {
       setPhrases(shuffle(logicalData.map(e=>e.phrase)))
     }
 
-  }, [storyDataLoading, logicalDataLoading]);
+  }, [storyDataLoading, logicalDataLoading, logicalData]);
 
   function handleClick(id) {
     setTimeout(() => {
