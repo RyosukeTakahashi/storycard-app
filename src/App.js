@@ -31,13 +31,13 @@ const cardCount = 10;
 export default function App() {
   const [
     { data: logicalData, loading: logicalDataLoading }
-  // ] = useAxios({ url: `http://localhost:3001/logical_phrases/` });
-  ] = useAxios({ url: `https://randomuser.me/api/?results=30` });
+  ] = useAxios({ url: `http://localhost:3001/logical_phrases/` });
+  // ] = useAxios({ url: `https://randomuser.me/api/?results=30` });
 
   const [
     { data: storyData, loading: storyDataLoading }
-    // ] = useAxios({ url: `http://localhost:3001/story_phrases/` });
-  ] = useAxios({ url: `https://randomuser.me/api/?results=30` });
+    ] = useAxios({ url: `http://localhost:3001/story_phrases/` });
+  // ] = useAxios({ url: `https://randomuser.me/api/?results=30` });
 
   const [isInMenu] = useState(true);
   const [gone] = useState(() => new Set());
@@ -105,7 +105,8 @@ export default function App() {
   useEffect(() => {
     if(!logicalDataLoading && !storyDataLoading) {
       console.log(logicalData.results);
-      setPhrases(shuffle(logicalData.results.map(e=>e.email)))
+      // setPhrases(shuffle(logicalData.results.map(e=>e.email)))
+      setPhrases(shuffle(logicalData.map(e=>e.phrase)))
     }
 
   }, [storyDataLoading, logicalDataLoading]);
@@ -114,14 +115,14 @@ export default function App() {
     setTimeout(() => {
       gone.clear();
       if (id==="logical"){
-        setPhrases((shuffle(logicalData.results.map(e=>e.email))))
+        // setPhrases((shuffle(logicalData.results.map(e=>e.email))))
+        setPhrases((shuffle(logicalData.map(e=>e.phrase))))
       } else if (id==="story"){
-        setPhrases((shuffle(storyData.results.map(e=>e.email))))
+        // setPhrases((shuffle(story.results.map(e=>e.email))))
+        setPhrases((shuffle(storyData.map(e=>e.phrase))))
       }
       set(i => from(i));
       setGoneAdded(true);
-      console.log(logicalData.results.map(e=>e.email))
-      console.log(storyData.results.map(e=>e.email))
     }, 600);
 
     setTimeout(() => {
@@ -134,7 +135,6 @@ export default function App() {
     <div>
       {logicalData && (
         <Deck
-          // phrases={shuffle(modes[mode].results).map(e=>e.email)}
           phrases={phrases}
           gone={gone}
           springProps={springProps}
